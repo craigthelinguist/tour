@@ -10,7 +10,11 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 
-
+/**
+ * A dialog that prompts the user to enter the size of the board. It then instantiates a new board.
+ * @author craigthelinguist
+ *
+ */
 public class TourDialog extends JDialog{
 
 	
@@ -33,7 +37,7 @@ public class TourDialog extends JDialog{
 					int size = Integer.parseInt(textField.getText());
 					if (size <= 1) return;
 					dispose();
-					new KnightsTour(size);
+					new Board(size);
 					
 				}
 				catch(NumberFormatException e){}

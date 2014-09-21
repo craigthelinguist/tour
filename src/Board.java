@@ -14,8 +14,11 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-
-public class KnightsTour {
+/**
+ * Graphical representation of an nxn chessboard.
+ * @author craigthelinguist
+ */
+public class Board {
 
 	public static final int GRID_WD = 30;
 	public final int SIZE;
@@ -30,7 +33,7 @@ public class KnightsTour {
 	private JLabel barometer_label;
 	private JLabel barometer;
 	
-	public KnightsTour(int size){
+	public Board(int size){
 		SIZE = size;
 		
 		// set up canvas
