@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -56,6 +57,22 @@ public class Board {
 					g.setColor(Color.BLACK);
 					g.drawRect(x,y, GRID_WD,GRID_WD);
 				}
+
+				List<Point> solution = KnightsTour.getTour();
+				if (solution != null && !solution.isEmpty()){
+					g.setColor(Color.BLUE);
+					Point prev = solution.get(0);
+					for (int i = 1; i < solution.size(); i++){
+						int prevX = prev.x * GRID_WD + GRID_WD/2;
+						int prevY = prev.y * GRID_WD + GRID_WD/2;
+						Point current = solution.get(i);
+						int currentX = current.x * GRID_WD + GRID_WD/2;
+						int currentY = current.y * GRID_WD + GRID_WD/2;
+						g.drawLine(prevX,prevY,currentX,currentY);
+						prev = current;
+					}
+				}
+				
 			}
 		};
 		int panel_wd = GRID_WD*SIZE;
@@ -65,8 +82,10 @@ public class Board {
 		options = new JPanel();
 		JButton btn_runAlgorithm = new JButton("Run Algorithm");
 		JButton btn_newBoard = new JButton("New Board");
+		JButton btn_getSolution = new JButton("Get Solution");
 		options.add(btn_runAlgorithm);
 		options.add(btn_newBoard);
+		options.add(btn_getSolution);
 		options.setPreferredSize(new Dimension(btn_runAlgorithm.getPreferredSize().width+20,panel_wd));
 		options.setBackground(Color.WHITE);
 		
@@ -84,9 +103,9 @@ public class Board {
 
 			@Override
 			public void actionPerformed(ActionEvent event) {
-				if (selected == null){
-					JOptionPane.showMessageDialog(frame, "Need to select a starting square");
-				}
+				if (selected == null) KnightsTour.knightsTour(SIZE);
+				else KnightsTour.knightsTour(SIZE, selected);
+				canvas.repaint();
 			}
 		
 		});
