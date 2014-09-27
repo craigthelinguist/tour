@@ -72,6 +72,7 @@ public class KnightsTourOptimised {
 	 * @return: true if there is a knights tour, false if there isn't
 	 */
 	private static boolean backtrack(boolean[][] board, int i, int j, int n, int tilesVisited){
+		System.out.printf("(%d,%d)\n", i, j);
 		board[i][j] = true;
 		if (tilesVisited == n*n){
 			solution.add(new Point(i,j));
@@ -105,12 +106,14 @@ public class KnightsTourOptimised {
 		Point[] points = new Point[8];
 		int[] neighbours = new int[8];
 		int z = 0;
+		boolean shouldTerminate = false;
 		for (int k = 0; k < moves.length; k++){
 			Point p = new Point(i+moves[k].x,j+moves[k].y);
 			if (p.x >= 0 && p.x < n && p.y >= 0 && p.y < n && !board[p.x][p.y]){
 				points[z] = p;
 				// this point hasn't been visited yet, so it will get counted in countNeighbours. Subtract 1 to compensate.
-				neighbours[z] = countNeighbours(p.x,p.y,n,board) - 1;
+				neighbours[z] = countNeighbours(p.x,p.y,n,board);
+				if (neighbours[z] == 0 && z > 1) shouldTerminate = true; //return new LinkedList<>();
 				z++;
 			}
 		}
@@ -136,6 +139,9 @@ public class KnightsTourOptimised {
 		// construct and return sorted list
 		LinkedList<Point> movesSorted = new LinkedList<>();
 		for (int k = 0; k < z; k++) movesSorted.add(points[k]);
+		
+		if (shouldTerminate && movesSorted.size() > 1) System.out.println("should terminate");
+		
 		return movesSorted;
 	}
 	
