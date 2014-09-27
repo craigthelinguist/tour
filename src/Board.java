@@ -36,7 +36,7 @@ public class Board {
 	private Algorithm state = Algorithm.UNOPTIMISED;
 	
 	private enum Algorithm{
-		NONE, UNOPTIMISED, OPTIMISED, PARBERRY;
+		NONE, UNOPTIMISED, OPTIMISED, OPTIMISED_CLOSED, PARBERRY;
 	}
 	
 	final Color ODD_TILES = new Color(0,180,250);
@@ -87,7 +87,10 @@ public class Board {
 					solution = KnightsTour.getTour();
 					break;
 				case OPTIMISED:
-					solution = KnightsTourOptimised.getTour();
+					solution = OptimisedOpen.getTour();
+					break;
+				case OPTIMISED_CLOSED:
+					solution = OptimisedClosed.getTour();
 					break;
 				case NONE:
 					solution = null;
@@ -117,11 +120,15 @@ public class Board {
 		// set up options
 		options = new JPanel();
 		JButton btn_runAlgorithm = new JButton("Naiive Algorithm");
-		JButton btn_runOptimised = new JButton("Optimised Naiive");
+		JButton btn_runOptimised = new JButton("Optimised");
+		JButton btn_runOptimisedBadStart = new JButton("Optimised Naive Start");
+		JButton btn_runClosedTour = new JButton("Structured Tour");
 		JButton btn_newBoard = new JButton("New Board");
 		JButton btn_clear = new JButton("Clear");
 		options.add(btn_runAlgorithm);
 		options.add(btn_runOptimised);
+		options.add(btn_runOptimisedBadStart);
+		options.add(btn_runClosedTour);
 		options.add(btn_newBoard);
 		options.add(btn_clear);
 		options.setPreferredSize(new Dimension(btn_runAlgorithm.getPreferredSize().width+20,panel_wd));
@@ -152,9 +159,31 @@ public class Board {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				if (selected == null) KnightsTourOptimised.knightsTour(SIZE);
-				else KnightsTourOptimised.knightsTour(SIZE, selected);
+				if (selected == null) OptimisedOpen.knightsTour(SIZE);
+				else OptimisedOpen.knightsTour(SIZE, selected);
 				state = Algorithm.OPTIMISED;
+				canvas.repaint();
+			}
+		
+		});
+		btn_runOptimisedBadStart.addActionListener(new ActionListener(){
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				if (selected == null) OptimisedOpen.knightsTourBadStartingPts(SIZE);
+				else OptimisedOpen.knightsTour(SIZE, selected);
+				state = Algorithm.OPTIMISED;
+				canvas.repaint();
+			}
+		
+		});
+		btn_runClosedTour.addActionListener(new ActionListener(){
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				if (selected == null) OptimisedClosed.knightsTour(SIZE);
+				else OptimisedClosed.knightsTour(SIZE, selected);
+				state = Algorithm.OPTIMISED_CLOSED;
 				canvas.repaint();
 			}
 		

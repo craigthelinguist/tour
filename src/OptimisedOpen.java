@@ -1,4 +1,7 @@
 import java.awt.Point;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -6,6 +9,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 
 /**
  * A slightly optimised version of KnightsTour.java. KnightsTourOptimised uses a couple of tricks and pruning techniques
@@ -13,9 +17,9 @@ import java.util.Map;
  * @author Aaron Craig
  *
  */
-public class KnightsTourOptimised {
+public class OptimisedOpen {
 
-	private KnightsTourOptimised(){}
+	private OptimisedOpen(){}
 	private static List<Point> solution;
 	
 	/**
@@ -41,15 +45,55 @@ public class KnightsTourOptimised {
 	}
 	
 	/**
-	 * Return true if there is a Knights Tour on the n*n board
+	 * Return true if there is a Knights Tour on the n*n board.
+	 * Sorts the starting points on the board according to their degree (using Warndorff's heuristic).
 	 * @param n: width of the board
 	 * @return: true if there exists a knights tour
 	 */
 	public static boolean knightsTour(int n){
+		
+		// set up data structures
+		Point[] points = new Point[n*n];
+		int[] neighbours = new int[n*n];
+		int z = 0;
+		boolean[][] board = new boolean[n][n];
+		
+		// get points and their neighbours
 		boolean odd = n % 2 != 0;
 		for (int i = 0; i < n; i++){
 			for (int j = 0; j < n; j++){
 				if (odd && (i+j) % 2 != 0) continue;
+				points[z] = new Point(i,j);
+				neighbours[z] = countNeighbours(i,j,n,board);
+				z++;
+			}
+		}
+		
+		// sort points by their degree then search each
+		sort(z,points,neighbours);
+		for (int i = 0; i < z; i++){
+			Point pt = points[i];
+			solution = new ArrayList<>();
+			if (backtrack(board,pt.x,pt.y,n,1)){
+				Collections.reverse(solution);
+				return true;
+			}
+		}
+		
+		// didn't find a tour
+		solution = new ArrayList<>();
+		return false;
+	}
+	
+	/**
+	 * Return true if there is a Knights Tour on the n*n board.
+	 * Iterates over all starting points sequentially.
+	 * @param n: width of the board
+	 * @return: true if there exists a knights tour
+	 */
+	public static boolean knightsTourBadStartingPts(int n){
+		for (int i = 0; i < n; i++){
+			for (int j = 0; j < n; j++){
 				boolean[][] board = new boolean[n][n];
 				solution = new ArrayList<>();
 				if (backtrack(board,i,j,n,1)){
@@ -62,6 +106,32 @@ public class KnightsTourOptimised {
 		return false;
 	}
 	
+	
+	/**
+	 * Sorts the array of points using the given array of neighbours as a key.
+	 * @param size
+	 * @param points
+	 * @param neighbours
+	 */
+	public static void sort(int size, Point[] points, int[] neighbours){
+		for (int k = 1; k < size; k++){
+			Point considering = points[k];
+			int idxConsidering = k;
+			for (int l = k-1; l >= 0;  l--){
+				if (neighbours[l] > neighbours[idxConsidering]){
+					Point temp = points[l];
+					points[l] = considering;
+					points[idxConsidering] = temp;
+					int tempInt = neighbours[l];
+					neighbours[l] = neighbours[idxConsidering];
+					neighbours[idxConsidering] = tempInt;
+					idxConsidering = l;
+				}
+				else break;
+			}
+		}
+	}
+	
 	/**
 	 * Recursively explores all possibilities for a knights tour.
 	 * @param board: 2d boolean array, where an entry is true if the knight has visited that point.
@@ -72,7 +142,6 @@ public class KnightsTourOptimised {
 	 * @return: true if there is a knights tour, false if there isn't
 	 */
 	private static boolean backtrack(boolean[][] board, int i, int j, int n, int tilesVisited){
-		System.out.printf("(%d,%d)\n", i, j);
 		board[i][j] = true;
 		if (tilesVisited == n*n){
 			solution.add(new Point(i,j));
@@ -106,41 +175,23 @@ public class KnightsTourOptimised {
 		Point[] points = new Point[8];
 		int[] neighbours = new int[8];
 		int z = 0;
-		boolean shouldTerminate = false;
 		for (int k = 0; k < moves.length; k++){
 			Point p = new Point(i+moves[k].x,j+moves[k].y);
 			if (p.x >= 0 && p.x < n && p.y >= 0 && p.y < n && !board[p.x][p.y]){
 				points[z] = p;
 				// this point hasn't been visited yet, so it will get counted in countNeighbours. Subtract 1 to compensate.
 				neighbours[z] = countNeighbours(p.x,p.y,n,board);
-				if (neighbours[z] == 0 && z > 1) shouldTerminate = true; //return new LinkedList<>();
+				if (neighbours[z] == 0 && z > 1) return new LinkedList<>();
 				z++;
 			}
 		}
 		
 		// sort points in array according to their neighbours via insertion sort
-		for (int k = 1; k < z; k++){
-			Point considering = points[k];
-			int idxConsidering = k;
-			for (int l = k-1; l >= 0;  l--){
-				if (neighbours[l] > neighbours[idxConsidering]){
-					Point temp = points[l];
-					points[l] = considering;
-					points[idxConsidering] = temp;
-					int tempInt = neighbours[l];
-					neighbours[l] = neighbours[idxConsidering];
-					neighbours[idxConsidering] = tempInt;
-					idxConsidering = l;
-				}
-				else break;
-			}
-		}
+		sort(z,points,neighbours);
 	
 		// construct and return sorted list
 		LinkedList<Point> movesSorted = new LinkedList<>();
 		for (int k = 0; k < z; k++) movesSorted.add(points[k]);
-		
-		if (shouldTerminate && movesSorted.size() > 1) System.out.println("should terminate");
 		
 		return movesSorted;
 	}
