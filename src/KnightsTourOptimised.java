@@ -1,8 +1,11 @@
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A slightly optimised version of KnightsTour.java. KnightsTourOptimised uses a couple of tricks and pruning techniques
@@ -18,7 +21,7 @@ public class KnightsTourOptimised {
 	/**
 	 * Return true if there is a Knights Tour on the n*n board starting at point p.
 	 * @param n: width of the board
-	 * @param p: starting position of the knight
+	 * @param p: starting Point of the knight
 	 * @return: true if there exists a knights tour
 	 */
 	public static boolean knightsTour(int n, Point p){
@@ -62,8 +65,8 @@ public class KnightsTourOptimised {
 	/**
 	 * Recursively explores all possibilities for a knights tour.
 	 * @param board: 2d boolean array, where an entry is true if the knight has visited that point.
-	 * @param i: x position of the knight on the board
-	 * @param j: y position of the knight on the board
+	 * @param i: x Point of the knight on the board
+	 * @param j: y Point of the knight on the board
 	 * @param n: width of the board
 	 * @param tilesVisited: number of tiles visited; if this = n*n then we have visited every tile
 	 * @return: true if there is a knights tour, false if there isn't
@@ -74,7 +77,7 @@ public class KnightsTourOptimised {
 			solution.add(new Point(i,j));
 			return true;
 		}
-		LinkedList<Point> validMoves = validMoves(i,j,n);
+		List<Point> validMoves = validMoves(i,j,n,board);
 		for (Point p : validMoves){
 			if (!board[p.x][p.y]){
 				if (backtrack(board,p.x,p.y,n,tilesVisited+1)){
@@ -89,20 +92,71 @@ public class KnightsTourOptimised {
 	
 	/**
 	 * Helper method. Computes the list of valid moves of a knight at the point (i,j) on the n*n board.
-	 * @param i: x position of the knight
-	 * @param j: y position of the knight
+	 * The list returned will be sorted in ascending order. One point is greater than another if the knight
+	 * can move to more squares from that point.
+	 * @param i: x Point of the knight
+	 * @param j: y Point of the knight
 	 * @param n: width of the board
 	 * @return: a list of points to which the knight can move.
 	 */
-	private static LinkedList<Point> validMoves(int i, int j, int n){
-		LinkedList<Point> validMoves = new LinkedList<>();
+	private static List<Point> validMoves(int i, int j, final int n, final boolean[][] board){
+
+		// compute valid moves
+		Point[] points = new Point[8];
+		int[] neighbours = new int[8];
+		int z = 0;
 		for (int k = 0; k < moves.length; k++){
 			Point p = new Point(i+moves[k].x,j+moves[k].y);
-			if (p.x >= 0 && p.x < n && p.y >= 0 && p.y < n){
-				validMoves.add(p);
+			if (p.x >= 0 && p.x < n && p.y >= 0 && p.y < n && !board[p.x][p.y]){
+				points[z] = p;
+				// this point hasn't been visited yet, so it will get counted in countNeighbours. Subtract 1 to compensate.
+				neighbours[z] = countNeighbours(p.x,p.y,n,board) - 1;
+				z++;
 			}
 		}
-		return validMoves;
+		
+		// sort points in array according to their neighbours via insertion sort
+		for (int k = 1; k < z; k++){
+			Point considering = points[k];
+			int idxConsidering = k;
+			for (int l = k-1; l >= 0;  l--){
+				if (neighbours[l] > neighbours[idxConsidering]){
+					Point temp = points[l];
+					points[l] = considering;
+					points[idxConsidering] = temp;
+					int tempInt = neighbours[l];
+					neighbours[l] = neighbours[idxConsidering];
+					neighbours[idxConsidering] = tempInt;
+					idxConsidering = l;
+				}
+				else break;
+			}
+		}
+	
+		// construct and return sorted list
+		LinkedList<Point> movesSorted = new LinkedList<>();
+		for (int k = 0; k < z; k++) movesSorted.add(points[k]);
+		return movesSorted;
+	}
+	
+	/**
+	 * From the point (i,j) on the n*n board, count the number of surrounding squares to which a knight
+	 * can move, and to which it hasn't already moved.
+	 * @param i: x position of knight
+	 * @param j: y position of knight
+	 * @param n: width of board
+	 * @param board: 2d array where a cell is true if the knight has been to that square
+	 * @return: number of neighbours from that cell.
+	 */
+	private static int countNeighbours(int i, int j, int n, boolean[][] board){
+		int number = 0;
+		for (int k = 0; k < moves.length; k++){
+			Point p = new Point(i+moves[k].x,j+moves[k].y);
+			if (p.x >= 0 && p.x < n && p.y >= 0 && p.y < n && !board[p.x][p.y]){
+				++number;
+			}
+		}
+		return number;
 	}
 	
 	/**
@@ -114,7 +168,7 @@ public class KnightsTourOptimised {
 	}
 	
 	/**
-	 * An array of valid moves. The knight can add any of the points in this array onto its position
+	 * An array of valid moves. The knight can add any of the points in this array onto its Point
 	 * in order to move around.
 	 */
 	private static Point[] moves = new Point[]{
