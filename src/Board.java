@@ -33,6 +33,12 @@ public class Board {
 	private JLabel runtime;
 	private JLabel barometer_label;
 	private JLabel barometer;
+	private Algorithm state = Algorithm.UNOPTIMISED;
+	
+	private enum Algorithm{
+		UNOPTIMISED, OPTIMISED, PARBERRY;
+	}
+	
 	
 	public Board(int size){
 		SIZE = size;
@@ -58,7 +64,16 @@ public class Board {
 					g.drawRect(x,y, GRID_WD,GRID_WD);
 				}
 
-				List<Point> solution = KnightsTour.getTour();
+				List<Point> solution = null;
+				switch (state){
+				case UNOPTIMISED:
+					solution = KnightsTour.getTour();
+					break;
+				case OPTIMISED:
+					solution = KnightsTourOptimised.getTour();
+					break;
+				}
+				
 				if (solution != null && !solution.isEmpty()){
 					g.setColor(Color.BLUE);
 					Point prev = solution.get(0);
@@ -80,10 +95,12 @@ public class Board {
 
 		// set up options
 		options = new JPanel();
-		JButton btn_runAlgorithm = new JButton("Run Algorithm");
+		JButton btn_runAlgorithm = new JButton("Naiive Algorithm");
+		JButton btn_runOptimised = new JButton("Optimised Naiive");
 		JButton btn_newBoard = new JButton("New Board");
 		JButton btn_getSolution = new JButton("Get Solution");
 		options.add(btn_runAlgorithm);
+		options.add(btn_runOptimised);
 		options.add(btn_newBoard);
 		options.add(btn_getSolution);
 		options.setPreferredSize(new Dimension(btn_runAlgorithm.getPreferredSize().width+20,panel_wd));
@@ -105,6 +122,19 @@ public class Board {
 			public void actionPerformed(ActionEvent event) {
 				if (selected == null) KnightsTour.knightsTour(SIZE);
 				else KnightsTour.knightsTour(SIZE, selected);
+				state = Algorithm.UNOPTIMISED;
+				canvas.repaint();
+			}
+		
+		});
+		btn_runOptimised.addActionListener(new ActionListener(){
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				System.out.println("touch");
+				if (selected == null) KnightsTourOptimised.knightsTour(SIZE);
+				else KnightsTourOptimised.knightsTour(SIZE, selected);
+				state = Algorithm.OPTIMISED;
 				canvas.repaint();
 			}
 		

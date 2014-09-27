@@ -5,14 +5,14 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * A class with static methods that will take a square n*n board and find a sequence of moves making up a knights tour.
- * Unoptimised. It works by looking at every possible solution.
+ * A slightly optimised version of KnightsTour.java. KnightsTourOptimised uses a couple of tricks and pruning techniques
+ * in order to speed up computation.
  * @author Aaron Craig
  *
  */
-public class KnightsTour {
+public class KnightsTourOptimised {
 
-	private KnightsTour(){}
+	private KnightsTourOptimised(){}
 	private static List<Point> solution;
 	
 	/**
@@ -68,13 +68,14 @@ public class KnightsTour {
 		LinkedList<Point> validMoves = validMoves(i,j,n);
 		for (Point p : validMoves){
 			if (!board[p.x][p.y]){
-				if (backtrack(copy(board),p.x,p.y,n,tilesVisited+1)){
+				if (backtrack(board,p.x,p.y,n,tilesVisited+1)){
 					solution.add(new Point(i,j));
 					return true;
 				}
 				
 			}
 		}
+		board[i][j] = false;
 		return false;
 	}
 	
@@ -118,20 +119,5 @@ public class KnightsTour {
 		new Point(-2,1),
 		new Point(-2,-1)
 	};
-	
-	/**
-	 * Creates a new boolean[][] object and copy the values from the old one into the new one.
-	 * @param board: board to copy
-	 * @return: a new reference with the same values filled.
-	 */
-	private static boolean[][] copy(boolean[][] board){
-		boolean[][] copy = new boolean[board.length][board[0].length];
-		for (int i = 0; i < board.length; i++){
-			for (int j = 0; j < board[0].length; j++){
-				copy[i][j] = board[i][j];
-			}
-		}
-		return copy;
-	}
 	
 }
