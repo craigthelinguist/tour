@@ -36,9 +36,13 @@ public class Board {
 	private Algorithm state = Algorithm.UNOPTIMISED;
 	
 	private enum Algorithm{
-		UNOPTIMISED, OPTIMISED, PARBERRY;
+		NONE, UNOPTIMISED, OPTIMISED, PARBERRY;
 	}
 	
+	final Color ODD_TILES = new Color(0,180,250);
+	final Color ODD_TILES_DARKER = new Color(0,120,190);
+	final Color EVEN_TILES = new Color(255,255,255);
+	final Color EVEN_TILES_DARKER = new Color(195,195,195);
 	
 	public Board(int size){
 		SIZE = size;
@@ -47,23 +51,36 @@ public class Board {
 		canvas = new JPanel(){			
 			@Override
 			protected void paintComponent(Graphics g){
+				
+				// draw the board
 				g.setColor(Color.LIGHT_GRAY);
 				g.fillRect(0,0,getWidth(),getHeight());
 				g.setColor(Color.BLACK);
 				for (int i = 0; i < SIZE; i++){
 					for (int j = 0; j < SIZE; j++){
+						
+						if ((i+j)%2 == 0) g.setColor(EVEN_TILES);
+						else g.setColor(ODD_TILES);
+						g.fillRect(i*GRID_WD, j*GRID_WD, GRID_WD, GRID_WD);
+						
+						g.setColor(Color.BLACK);
 						g.drawRect(i*GRID_WD, j*GRID_WD, GRID_WD, GRID_WD);
+						
 					}
 				}
+				
+				// draw the selected tile
 				if (selected != null){
 					int x = GRID_WD*selected.x;
 					int y = GRID_WD*selected.y;
-					g.setColor(Color.RED);
+					if ((selected.x+selected.y)%2 == 0) g.setColor(EVEN_TILES_DARKER);
+					else g.setColor(ODD_TILES_DARKER);
 					g.fillRect(x,y, GRID_WD,GRID_WD);
 					g.setColor(Color.BLACK);
 					g.drawRect(x,y, GRID_WD,GRID_WD);
 				}
 
+				// draw the tour
 				List<Point> solution = null;
 				switch (state){
 				case UNOPTIMISED:
@@ -72,10 +89,12 @@ public class Board {
 				case OPTIMISED:
 					solution = KnightsTourOptimised.getTour();
 					break;
+				case NONE:
+					solution = null;
+					break;
 				}
-				
 				if (solution != null && !solution.isEmpty()){
-					g.setColor(Color.BLUE);
+					g.setColor(Color.BLACK);
 					Point prev = solution.get(0);
 					for (int i = 1; i < solution.size(); i++){
 						int prevX = prev.x * GRID_WD + GRID_WD/2;
@@ -88,6 +107,8 @@ public class Board {
 					}
 				}
 				
+				
+				
 			}
 		};
 		int panel_wd = GRID_WD*SIZE;
@@ -98,11 +119,11 @@ public class Board {
 		JButton btn_runAlgorithm = new JButton("Naiive Algorithm");
 		JButton btn_runOptimised = new JButton("Optimised Naiive");
 		JButton btn_newBoard = new JButton("New Board");
-		JButton btn_getSolution = new JButton("Get Solution");
+		JButton btn_clear = new JButton("Clear");
 		options.add(btn_runAlgorithm);
 		options.add(btn_runOptimised);
 		options.add(btn_newBoard);
-		options.add(btn_getSolution);
+		options.add(btn_clear);
 		options.setPreferredSize(new Dimension(btn_runAlgorithm.getPreferredSize().width+20,panel_wd));
 		options.setBackground(Color.WHITE);
 		
@@ -131,10 +152,18 @@ public class Board {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				System.out.println("touch");
 				if (selected == null) KnightsTourOptimised.knightsTour(SIZE);
 				else KnightsTourOptimised.knightsTour(SIZE, selected);
 				state = Algorithm.OPTIMISED;
+				canvas.repaint();
+			}
+		
+		});
+		btn_clear.addActionListener(new ActionListener(){
+
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				state = Algorithm.NONE;
 				canvas.repaint();
 			}
 		

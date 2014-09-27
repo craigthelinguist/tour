@@ -109,14 +109,8 @@ public class KnightsTour {
 	 * in order to move around.
 	 */
 	private static Point[] moves = new Point[]{
-		new Point(2,1),
-		new Point(2,-1),
-		new Point(1,2),
-		new Point(1,-2),
-		new Point(-1,2),
-		new Point(-1,-2),
-		new Point(-2,1),
-		new Point(-2,-1)
+		new Point(2,1), new Point(2,-1), new Point(1,2), new Point(1,-2),
+		new Point(-1,2), new Point(-1,-2), new Point(-2,1), new Point(-2,-1)
 	};
 	
 	/**

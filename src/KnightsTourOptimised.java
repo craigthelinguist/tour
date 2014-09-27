@@ -22,8 +22,15 @@ public class KnightsTourOptimised {
 	 * @return: true if there exists a knights tour
 	 */
 	public static boolean knightsTour(int n, Point p){
-		boolean[][] board = new boolean[n][n];
+
 		solution = new ArrayList<>();
+		
+		// no solution on odd board when we start on colour with the smaller amount
+		if (n % 2 != 0 && (p.x+p.y)%2 != 0){
+			return false;
+		}
+		
+		boolean[][] board = new boolean[n][n];
 		boolean ans = backtrack(board,p.x,p.y,n,1);
 		if (!ans) solution = new ArrayList<>();
 		else Collections.reverse(solution);
@@ -36,8 +43,10 @@ public class KnightsTourOptimised {
 	 * @return: true if there exists a knights tour
 	 */
 	public static boolean knightsTour(int n){
+		boolean odd = n % 2 != 0;
 		for (int i = 0; i < n; i++){
 			for (int j = 0; j < n; j++){
+				if (odd && (i+j) % 2 != 0) continue;
 				boolean[][] board = new boolean[n][n];
 				solution = new ArrayList<>();
 				if (backtrack(board,i,j,n,1)){
@@ -72,7 +81,6 @@ public class KnightsTourOptimised {
 					solution.add(new Point(i,j));
 					return true;
 				}
-				
 			}
 		}
 		board[i][j] = false;
