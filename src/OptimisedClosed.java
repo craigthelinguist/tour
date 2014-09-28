@@ -21,6 +21,7 @@ public class OptimisedClosed {
 
 	private OptimisedClosed(){}
 	private static List<Point> solution;
+	private static Point startPt;
 	
 	/**
 	 * Return true if there is a Knights Tour on the n*n board starting at point p.
@@ -31,12 +32,14 @@ public class OptimisedClosed {
 	public static boolean knightsTour(int n, Point p){
 
 		solution = new ArrayList<>();
+		startPt = null;
 		
 		// no solution on odd board when we start on colour with the smaller amount
 		if (n % 2 != 0 && (p.x+p.y)%2 != 0){
 			return false;
 		}
 		
+		startPt = p;
 		boolean[][] board = new boolean[n][n];
 		boolean ans = backtrack(board,p.x,p.y,n,1);
 		if (!ans) solution = new ArrayList<>();
@@ -74,6 +77,7 @@ public class OptimisedClosed {
 		for (int i = 0; i < z; i++){
 			Point pt = points[i];
 			solution = new ArrayList<>();
+			startPt = pt;
 			if (backtrack(board,pt.x,pt.y,n,1)){
 				Collections.reverse(solution);
 				return true;
@@ -144,8 +148,11 @@ public class OptimisedClosed {
 	private static boolean backtrack(boolean[][] board, int i, int j, int n, int tilesVisited){
 		board[i][j] = true;
 		if (tilesVisited == n*n){
-			solution.add(new Point(i,j));
-			return true;
+			if (Math.abs(i-startPt.x) + Math.abs(j-startPt.y) == 3){
+				solution.add(startPt);
+				solution.add(new Point(i,j));
+				return true;
+			}
 		}
 		List<Point> validMoves = validMoves(i,j,n,board);
 		for (Point p : validMoves){
