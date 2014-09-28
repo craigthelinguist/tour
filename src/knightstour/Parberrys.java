@@ -18,30 +18,32 @@ import java.util.List;
  */
 public class Parberrys {
 	
-	private static List<Point> solutions;
+	private static List<Point> solution;
 	
 	public static boolean solve(int n){
 		
-		solutions = new LinkedList<>();
+		solution = new LinkedList<>();
 		// Parberry's does not solve boards of odd-width
 		if (n % 2 != 0) return false;
 	
 		// for all even n, Parberry's can solve for boards of size
 		// n*n or n*(n+2)
 		
-		solutions = baseCase(n);
-		if (!solutions.isEmpty()) return true;
+		solution = baseCase(n);
+		if (!solution.isEmpty()) return true;
 		Point topleft = new Point(0,0);
 		Point botright = new Point(n-1,n-1);
-		solutions = squareBoardSolve(topleft,botright,n);
+		solution = squareBoardSolve(topleft,botright,n);
+		return true;
 	}
 	
 	/**
-	 * Check if the n is a base case. If it is, update the solutions list and return true.
+	 * Check if the n is a base case. If it is, update the solution list and return true.
 	 * @param n: width of the board
 	 * @return true if n is a base case; false otherwise.
 	 */
 	private static List<Point> baseCase(int n){
+		System.out.println("Base case " + n);
 		if (n == 10){
 			return new ArrayList<Point>(Arrays.asList(StructuredTours.tour_10x10));
 		}
@@ -76,77 +78,114 @@ public class Parberrys {
 	private static List<Point> squareMerge(List<Point> topleft, List<Point> topright, List<Point> botleft, List<Point> botright, int n){
 		
 		int k = n/2;
-		/**
-		 * 
-		 
-		 merge (k-2,k-1) with (k-2,k)	[topleft with botleft]
-		 merge (k-1,k+1) with (k,k+1)	[botleft with botright]
-		 merge (k+1,k) with (k+1,k-1)	[topright with botright]
-		 merge (k-1,k-2) with (k,k-2)	[topleft with topright]
-		 
-		 */
-		
 		List<Point> merged = new ArrayList<>();
-		int a,b,c,d;
 		
-		// start with point that merges top left to bottom left
-		for (a = 0; a < topleft.size(); a++){
-			Point pt = topleft.get(a);
-			merged.add(pt);
-			if (pt.x == k-2 && pt.y == k-1){
-				break;
-			}
-		}
-
-		// find pt in botleft where it merges
-		for (b = 0; b < botleft.size(); b++){
-			Point pt = botleft.get(b);
-			if (pt.x == k-2 && pt.y == k){
-				break;
-			}
-		}
-		for (;;b=(b+1)%botleft.size()){
-			Point pt = botleft.get(b);
-			merged.add(pt);
-			if (pt.x == k-1 && pt.y == k+1){
+		// bottom left
+		// this adds (k-1,k) and copies the points between (k-1,k) and (k-2,k+2)
+		for (int i = 0; i < botleft.size(); i++){
+			Point pt = botleft.get(i);
+			if (pt.x == k-1 && pt.y == k){
+				merged.add(pt);
+				
+				// figure out if other link is to the left or right
+				Point link = pt;
+				boolean otherLinkToLeft = true;
+				Point right = botleft.get((i+1)%botleft.size());
+				if (right.x == k-2 && right.y == k+2) otherLinkToLeft = false;
+				
+				// move in opposite of direction to the other link, copying all the points
+				int dir = otherLinkToLeft ? 1 : -1;
+				int start = i + dir;
+				for (int j = start; !botleft.get(j).equals(link) ; j = (j+dir)%botleft.size() ){
+					if (dir<0) j = botleft.size()+j; // wrap around if you're moving left
+					merged.add(botleft.get(j));
+				}
 				break;
 			}
 		}
 		
-		// find pt in botright where it merges
-		for (c = 0; c < botright.size(); c++){
-			Point pt = botright.get(c);
+		// bottom right
+		// this links (k-2,k+2) -> (k,k+1), and copies the points between (k,k+1) and (k+2,k)
+		for (int i = 0; i < botright.size(); i++){
+			Point pt = botright.get(i);
 			if (pt.x == k && pt.y == k+1){
+				merged.add(pt);
+				
+				// figure out if other link is to the left or right
+				Point link = pt;
+				boolean otherLinkToLeft = true;
+				Point right = botright.get((i+1)%botright.size());
+				if (right.x == k+2 && right.y == k) otherLinkToLeft = false;
+				
+				// move in opposite of direction to the other link, copying all the points
+				int dir = otherLinkToLeft ? 1 : -1;
+				int start = i + dir;
+				for (int j = start; !botright.get(j).equals(link); j = (j+dir)%botright.size()){
+					if (dir<0) j = botright.size()+j; // wrap around if you're moving left
+					merged.add(botright.get(j));
+				}
 				break;
+				
 			}
 		}
-		for (;; c = (c+1)%botright.size()){
-			Point pt = botright.get(c);
-			merged.add(pt);
-			if (pt.x == k+1 && pt.y == k){
+		
+		// top right
+		// this links (k+2,k) -> (k,k-1) and copies the points between (k,k-1) and (k+1,k-3)
+		for (int i = 0; i < topright.size(); i++){
+			Point pt = topright.get(i);
+			if (pt.x == k && pt.y == k-1){
+				merged.add(pt);
+				
+				// figure out if other link is to the left or right
+				Point link = pt;
+				boolean otherLinkToLeft = true;
+				Point right = topright.get((i+1)%topright.size());
+				if (right.x == k+1 && right.y == k-3) otherLinkToLeft = false;
+				
+				// move in opposite  of direction to the other link, copying all the points
+				int dir = otherLinkToLeft ? 1 : -1;
+				int start = i + dir;
+				for (int j = start; !topright.get(j).equals(link); j = (j+dir)%topright.size()){
+					if (dir<0) j = topright.size()+j; //wrap around if you're moving left
+					merged.add(topright.get(j));
+				}
+				break;
+				
+			}
+		}
+		
+		// top left
+		// this links (k+1,k-3) -> (k-1,k-2) and copies the points between (k-1,k-2) and (k-3,k-1)
+		for (int i = 0; i < topleft.size(); i++){
+			Point pt = topleft.get(i);
+			if (pt.x == k-1 && pt.y == k-2){
+				merged.add(pt);
+				
+				// figure out if other link is to the left or right
+				Point link = pt;
+				boolean otherLinkToLeft = true;
+				Point right = topleft.get((i+1)%topleft.size());
+				if (right.x == k-3 && right.y == k-1) otherLinkToLeft = false;
+				
+				// move in opposite of direction to the other link, copying all the points
+				int dir = otherLinkToLeft ? 1 : -1;
+				int start = i + dir;
+				for (int j = start; !topleft.get(j).equals(link); j = (j+dir)%topleft.size()){
+					if (dir<0) j = topleft.size()+j;
+					merged.add(topleft.get(j));
+				}
 				break;
 			}
 		}
 		
-		// find pt in topright where it merges
-		for (d = 0; d < topright.size(); d++){
-			Point pt = topright.get(d);
-			if (pt.x == k+1 && pt.y == k-1){
-				break;
-			}
-		}
-		for (;; d = (d+1)%topright.size()){
-			Point pt = topright.get(c);
-			merged.add(pt);
-			if (pt.x == k && pt.y == k-2){
-				break;
-			}
-		}
-		
-		// find pt in topleft where it merges
-		for (a = 0; )
+		// it's a closed tour: add the first point again
+		merged.add(merged.get(0));
+		return merged;
 		
 	}
 	
+	public static List<Point> getTour(){
+		return solution;
+	}
 	
 }

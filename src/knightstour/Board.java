@@ -40,7 +40,7 @@ public class Board {
 	private Algorithm state = Algorithm.UNOPTIMISED;
 	
 	private enum Algorithm{
-		NONE, UNOPTIMISED, OPTIMISED, OPTIMISED_CLOSED, STRUCTURED_TOUR, PARBERRY;
+		NONE, UNOPTIMISED, OPTIMISED, OPTIMISED_CLOSED, PARBERRY;
 	}
 	
 	final Color ODD_TILES = new Color(0,180,250);
@@ -101,15 +101,6 @@ public class Board {
 					}
 				}
 				
-				Point[] pts = StructuredTours.tour_6x6;
-				Point pt1 = pts[0];
-				g.setColor(Color.BLACK);
-				for (int i = 1; i < pts.length; i++){
-					Point pt2 = pts[i];
-					g.drawLine(pt1.x*GRID_WD+GRID_WD/2,pt1.y*GRID_WD+GRID_WD/2,pt2.x*GRID_WD+GRID_WD/2,pt2.y*GRID_WD+GRID_WD/2);
-					pt1=pt2;
-				}
-				
 			}
 		};
 		int panel_wd = GRID_WD*SIZE;
@@ -119,15 +110,12 @@ public class Board {
 		options = new JPanel();
 		JButton btn_runAlgorithm = new JButton("Naiive Algorithm");
 		JButton btn_runOptimised = new JButton("Optimised");
-		JButton btn_runOptimisedBadStart = new JButton("Optimised Naive Start");
-		JButton btn_runStructuredTour = new JButton("Structured Tour");
+		JButton btn_parberry = new JButton("Parberry");
 		JButton btn_newBoard = new JButton("New Board");
 		JButton btn_saveTour = new JButton("Save Tour");
 		JButton btn_clear = new JButton("Clear");
 		options.add(btn_runAlgorithm);
 		options.add(btn_runOptimised);
-		options.add(btn_runOptimisedBadStart);
-		options.add(btn_runStructuredTour);
 		options.add(btn_newBoard);
 		options.add(btn_saveTour);
 		options.add(btn_clear);
@@ -166,25 +154,18 @@ public class Board {
 			}
 		
 		});
-		btn_runOptimisedBadStart.addActionListener(new ActionListener(){
+		btn_parberry.addActionListener(new ActionListener(){
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				if (selected == null) OptimisedOpen.knightsTourBadStartingPts(SIZE);
-				else OptimisedOpen.knightsTour(SIZE, selected);
-				state = Algorithm.OPTIMISED;
-				canvas.repaint();
-			}
-		
-		});
-		btn_runStructuredTour.addActionListener(new ActionListener(){
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				if (selected == null) StructuredTour.knightsTour(SIZE);
-				else StructuredTour.knightsTour(SIZE, selected);
-				state = Algorithm.STRUCTURED_TOUR;
-				canvas.repaint();
+				if (SIZE % 2 != 0){
+					JOptionPane.showMessageDialog(null, "Parberry's only works on boards of even width","Warning!",JOptionPane.WARNING_MESSAGE);
+				}
+				else{
+					Parberrys.solve(SIZE);
+					state = Algorithm.PARBERRY;
+					canvas.repaint();
+				}
 			}
 		
 		});
@@ -206,9 +187,6 @@ public class Board {
 						break;
 					case OPTIMISED_CLOSED:
 						sb.append("optimised_closed.txt");
-						break;
-					case STRUCTURED_TOUR:
-						sb.append("structured.txt");
 						break;
 					case PARBERRY:
 						sb.append("parberry.txt");
@@ -297,11 +275,8 @@ public class Board {
 		case OPTIMISED_CLOSED:
 			solution = OptimisedClosed.getTour();
 			break;
-		case STRUCTURED_TOUR:
-			solution = StructuredTour.getTour();
-			break;
-		case NONE:
-			solution = null;
+		case PARBERRY:
+			solution = Parberrys.getTour();
 			break;
 		default:
 			solution = null;
