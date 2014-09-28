@@ -21,16 +21,11 @@ public class Parberrys {
 	private static List<Point> solution;
 	
 	public static boolean solve(int n){
-		
 		solution = new LinkedList<>();
 		// Parberry's does not solve boards of odd-width
+		// Current version only works for squares of these numbers
 		if (n % 2 != 0) return false;
-	
-		// for all even n, Parberry's can solve for boards of size
-		// n*n or n*(n+2)
-		
-		solution = baseCase(n,new Point(0,0));
-		if (!solution.isEmpty()) return true;
+		if (n % 6 != 0 && n % 8 != 0 && n % 10 != 0) return false;
 		Point origin = new Point(0,0);
 		solution = squareBoardSolve(origin,n);
 		return true;
