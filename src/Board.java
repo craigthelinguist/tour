@@ -100,6 +100,15 @@ public class Board {
 					}
 				}
 				
+				Point[] pts = StructuredTours.tour_6x6;
+				Point pt1 = pts[0];
+				g.setColor(Color.BLACK);
+				for (int i = 1; i < pts.length; i++){
+					Point pt2 = pts[i];
+					g.drawLine(pt1.x*GRID_WD+GRID_WD/2,pt1.y*GRID_WD+GRID_WD/2,pt2.x*GRID_WD+GRID_WD/2,pt2.y*GRID_WD+GRID_WD/2);
+					pt1=pt2;
+				}
+				
 			}
 		};
 		int panel_wd = GRID_WD*SIZE;
