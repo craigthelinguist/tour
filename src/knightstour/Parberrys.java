@@ -42,7 +42,6 @@ public class Parberrys {
 	 * @return true if n is a base case; false otherwise.
 	 */
 	private static List<Point> baseCase(int n, Point origin){
-		System.out.println("Base case " + n);
 		
 		List<Point> pts = new ArrayList<Point>();
 		if (n == 10){
@@ -75,10 +74,10 @@ public class Parberrys {
 		
 		// divide
 		int k = n/2;
-		List<Point> topleft = squareBoardSolve(new Point(0,0), k);
-		List<Point> topright = squareBoardSolve(new Point(k,0), k);
-		List<Point> botleft = squareBoardSolve(new Point(0,k), k);
-		List<Point> botright = squareBoardSolve(new Point(k,k), k);
+		List<Point> topleft = squareBoardSolve(new Point(origin.x,origin.y), k);
+		List<Point> topright = squareBoardSolve(new Point(origin.x+k,origin.y), k);
+		List<Point> botleft = squareBoardSolve(new Point(origin.x,origin.y+k), k);
+		List<Point> botright = squareBoardSolve(new Point(origin.x+k,origin.y+k), k);
 		
 		// combine
 		return squareMerge(topleft,topright,botleft,botright,origin,n);
@@ -89,10 +88,6 @@ public class Parberrys {
 			Point origin, int n){
 		
 		int k = n/2;
-		Point origin_topleft = new Point(0,0);
-		Point origin_botleft = new Point(0,k);
-		Point origin_topright = new Point(k,0);
-		Point origin_botright = new Point(k,k);
 		
 		List<Point> merged = new ArrayList<>();
 		
