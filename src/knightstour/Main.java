@@ -1,3 +1,4 @@
+package knightstour;
 
 public class Main {
 

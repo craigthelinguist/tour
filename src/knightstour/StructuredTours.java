@@ -1,3 +1,4 @@
+package knightstour;
 import java.awt.Point;
 
 /**

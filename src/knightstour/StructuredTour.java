@@ -1,3 +1,4 @@
+package knightstour;
 import java.awt.Point;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -17,10 +18,11 @@ import java.util.PriorityQueue;
  * @author Aaron Craig
  *
  */
-public class OptimisedOpen {
+public class StructuredTour {
 
-	private OptimisedOpen(){}
+	private StructuredTour(){}
 	private static List<Point> solution;
+	private static Point startPt;
 	
 	/**
 	 * Return true if there is a Knights Tour on the n*n board starting at point p.
@@ -31,17 +33,22 @@ public class OptimisedOpen {
 	public static boolean knightsTour(int n, Point p){
 
 		solution = new ArrayList<>();
+		startPt = null;
 		
 		// no solution on odd board when we start on colour with the smaller amount
 		if (n % 2 != 0 && (p.x+p.y)%2 != 0){
 			return false;
 		}
 		
+		startPt = p;
 		boolean[][] board = new boolean[n][n];
 		boolean ans = backtrack(board,p.x,p.y,n,1);
-		if (!ans) solution = new ArrayList<>();
-		else Collections.reverse(solution);
-		return ans;
+		if (ans){
+			Collections.reverse(solution);
+			if (StructuredTour.isStructuredTour(solution, n)) return true;
+		}
+		solution = new ArrayList<>();
+		return false;
 	}
 	
 	/**
@@ -74,9 +81,10 @@ public class OptimisedOpen {
 		for (int i = 0; i < z; i++){
 			Point pt = points[i];
 			solution = new ArrayList<>();
+			startPt = pt;
 			if (backtrack(board,pt.x,pt.y,n,1)){
 				Collections.reverse(solution);
-				return true;
+				if (StructuredTour.isStructuredTour(solution, n)) return true;
 			}
 		}
 		
@@ -144,8 +152,11 @@ public class OptimisedOpen {
 	private static boolean backtrack(boolean[][] board, int i, int j, int n, int tilesVisited){
 		board[i][j] = true;
 		if (tilesVisited == n*n){
-			solution.add(new Point(i,j));
-			return true;
+			if (Math.abs(i-startPt.x) + Math.abs(j-startPt.y) == 3){
+				solution.add(startPt);
+				solution.add(new Point(i,j));
+				return true;
+			}
 		}
 		List<Point> validMoves = validMoves(i,j,n,board);
 		for (Point p : validMoves){
@@ -222,6 +233,59 @@ public class OptimisedOpen {
 	 */
 	public static List<Point> getTour(){
 		return solution;
+	}
+	
+	
+	/**
+	 * Return true if the solution is a structured tour. False otherwise.
+	 * @param solution: the candidate solution
+	 * @return: true if the solution is a structured tour.
+	 */
+	public static boolean isStructuredTour(List<Point> solution, int n){
+
+		Point[][] pts = getStructuredPts(n);
+		List<Point[]> ptList = new ArrayList<>();
+		for (Point[] ptArray : pts){
+			ptList.add(ptArray);
+		}
+		
+		Point pt1 = solution.get(0);
+		for (int i = 1; i < solution.size(); i++){
+			Point pt2 = solution.get(i);
+			Point[] ptsToCheck = new Point[]{ pt1, pt2 };
+			for (int j = 0; j < ptList.size(); j++){
+				Point[] structuredPtsPair = ptList.get(j);
+				if (samePts(structuredPtsPair,ptsToCheck)){
+					ptList.remove(j);
+					break;
+				}
+			}
+			pt1 = pt2;
+		}
+
+		return ptList.isEmpty();		
+	}
+	
+	private static boolean samePts(Point[] p, Point[] q){
+		if (p[0].equals(q[1]) && q[0].equals(p[1])) return true;
+		else if (p[0].equals(q[0]) && p[1].equals(q[1])) return true;
+		else return false;
+	}
+	
+	public static Point[][] getStructuredPts(int n){
+		Point[][] pts = new Point[][]{
+				
+				new Point[]{ new Point(1,0), new Point(0,2) },
+				new Point[]{ new Point(2,0), new Point(0,1) },
+				new Point[]{ new Point(n-2,0), new Point(n-1,2) },
+				new Point[]{ new Point(n-3,0), new Point(n-1,1) },
+				new Point[]{ new Point(0,n-2), new Point(2,n-1) },
+				new Point[]{ new Point(0,n-3), new Point(1,n-1) },
+				new Point[]{ new Point(n-1,n-3), new Point(n-2,n-1) },
+				new Point[]{ new Point(n-1,n-2), new Point(n-3,n-1) }
+			
+		};
+		return pts;
 	}
 	
 	/**
