@@ -29,11 +29,10 @@ public class Parberrys {
 		// for all even n, Parberry's can solve for boards of size
 		// n*n or n*(n+2)
 		
-		solution = baseCase(n);
+		solution = baseCase(n,new Point(0,0));
 		if (!solution.isEmpty()) return true;
-		Point topleft = new Point(0,0);
-		Point botright = new Point(n-1,n-1);
-		solution = squareBoardSolve(topleft,botright,n);
+		Point origin = new Point(0,0);
+		solution = squareBoardSolve(origin,n);
 		return true;
 	}
 	
@@ -42,63 +41,82 @@ public class Parberrys {
 	 * @param n: width of the board
 	 * @return true if n is a base case; false otherwise.
 	 */
-	private static List<Point> baseCase(int n){
+	private static List<Point> baseCase(int n, Point origin){
 		System.out.println("Base case " + n);
+		
+		List<Point> pts = new ArrayList<Point>();
 		if (n == 10){
-			return new ArrayList<Point>(Arrays.asList(StructuredTours.tour_10x10));
+			for (Point pt : Arrays.asList(StructuredTours.tour_10x10)){
+				Point new_pt = new Point(pt.x + origin.x, pt.y + origin.y);
+				pts.add(new_pt);
+			}
 		}
 		else if (n == 8){
-			return new ArrayList<Point>(Arrays.asList(StructuredTours.tour_8x8));
+			for (Point pt : Arrays.asList(StructuredTours.tour_8x8)){
+				Point new_pt = new Point(pt.x + origin.x, pt.y + origin.y);
+				pts.add(new_pt);
+			}
 		}
 		else if (n == 6){
-			return new ArrayList<Point>(Arrays.asList(StructuredTours.tour_6x6));
+			for (Point pt : Arrays.asList(StructuredTours.tour_6x6)){
+				Point new_pt = new Point(pt.x + origin.x, pt.y + origin.y);
+				pts.add(new_pt);
+			}
 		}
-		else return new ArrayList<Point>();
+		return pts;
 	}
 	
-	private static List<Point> squareBoardSolve(Point pt_topleft, Point pt_botright, int n){
+	private static List<Point> squareBoardSolve(Point origin, int n){
 		
 		// base case
 		if (n <= 10){
-			return baseCase(pt_botright.x - pt_topleft.x);
+			return baseCase(n,origin);
 		}
 		
 		// divide
 		int k = n/2;
-		List<Point> topleft = squareBoardSolve(new Point(0,0), new Point(k-1,k-1), k);
-		List<Point> topright = squareBoardSolve(new Point(k,0), new Point(n-1,k-1), k);
-		List<Point> botleft = squareBoardSolve(new Point(0,k), new Point(k-1,n-1), k);
-		List<Point> botright = squareBoardSolve(new Point(k,k), new Point(n-1,n-1), k);
+		List<Point> topleft = squareBoardSolve(new Point(0,0), k);
+		List<Point> topright = squareBoardSolve(new Point(k,0), k);
+		List<Point> botleft = squareBoardSolve(new Point(0,k), k);
+		List<Point> botright = squareBoardSolve(new Point(k,k), k);
 		
 		// combine
-		return squareMerge(topleft,topright,botleft,botright,n);
+		return squareMerge(topleft,topright,botleft,botright,origin,n);
 		
 	}
 	
-	private static List<Point> squareMerge(List<Point> topleft, List<Point> topright, List<Point> botleft, List<Point> botright, int n){
+	private static List<Point> squareMerge(List<Point> topleft, List<Point> topright, List<Point> botleft, List<Point> botright,
+			Point origin, int n){
 		
 		int k = n/2;
+		Point origin_topleft = new Point(0,0);
+		Point origin_botleft = new Point(0,k);
+		Point origin_topright = new Point(k,0);
+		Point origin_botright = new Point(k,k);
+		
 		List<Point> merged = new ArrayList<>();
 		
 		// bottom left
 		// this adds (k-1,k) and copies the points between (k-1,k) and (k-2,k+2)
+		Point goalLink = new Point(k-1 + origin.x, k + origin.y);
+		Point otherLink = new Point(k-2 + origin.x, k+2 + origin.y);
 		for (int i = 0; i < botleft.size(); i++){
 			Point pt = botleft.get(i);
-			if (pt.x == k-1 && pt.y == k){
+			if (pt.equals(goalLink)){
 				merged.add(pt);
 				
 				// figure out if other link is to the left or right
 				Point link = pt;
 				boolean otherLinkToLeft = true;
 				Point right = botleft.get((i+1)%botleft.size());
-				if (right.x == k-2 && right.y == k+2) otherLinkToLeft = false;
+				if (right.equals(otherLink)) otherLinkToLeft = false;
 				
 				// move in opposite of direction to the other link, copying all the points
 				int dir = otherLinkToLeft ? 1 : -1;
 				int start = i + dir;
 				for (int j = start; !botleft.get(j).equals(link) ; j = (j+dir)%botleft.size() ){
-					if (dir<0) j = botleft.size()+j; // wrap around if you're moving left
 					merged.add(botleft.get(j));
+					if (j==0 && dir<0) j = botleft.size(); // wrap around if you're moving left
 				}
 				break;
 			}
@@ -106,23 +124,25 @@ public class Parberrys {
 		
 		// bottom right
 		// this links (k-2,k+2) -> (k,k+1), and copies the points between (k,k+1) and (k+2,k)
+		goalLink = new Point(k + origin.x,k+1 + origin.y);
+		otherLink = new Point(k+2 + origin.x, k + origin.y);
 		for (int i = 0; i < botright.size(); i++){
 			Point pt = botright.get(i);
-			if (pt.x == k && pt.y == k+1){
+			if (pt.equals(goalLink)){
 				merged.add(pt);
 				
 				// figure out if other link is to the left or right
 				Point link = pt;
 				boolean otherLinkToLeft = true;
 				Point right = botright.get((i+1)%botright.size());
-				if (right.x == k+2 && right.y == k) otherLinkToLeft = false;
+				if (right.equals(otherLink)) otherLinkToLeft = false;
 				
 				// move in opposite of direction to the other link, copying all the points
 				int dir = otherLinkToLeft ? 1 : -1;
 				int start = i + dir;
 				for (int j = start; !botright.get(j).equals(link); j = (j+dir)%botright.size()){
-					if (dir<0) j = botright.size()+j; // wrap around if you're moving left
 					merged.add(botright.get(j));
+					if (j==0 && dir<0) j = botleft.size(); // wrap around if you're moving left
 				}
 				break;
 				
@@ -131,23 +151,25 @@ public class Parberrys {
 		
 		// top right
 		// this links (k+2,k) -> (k,k-1) and copies the points between (k,k-1) and (k+1,k-3)
+		goalLink = new Point(k+origin.x, k-1+origin.y);
+		otherLink = new Point(k+1+origin.x, k-3+origin.y);
 		for (int i = 0; i < topright.size(); i++){
 			Point pt = topright.get(i);
-			if (pt.x == k && pt.y == k-1){
+			if (pt.equals(goalLink)){
 				merged.add(pt);
 				
 				// figure out if other link is to the left or right
 				Point link = pt;
 				boolean otherLinkToLeft = true;
 				Point right = topright.get((i+1)%topright.size());
-				if (right.x == k+1 && right.y == k-3) otherLinkToLeft = false;
+				if (right.equals(otherLink)) otherLinkToLeft = false;
 				
 				// move in opposite  of direction to the other link, copying all the points
 				int dir = otherLinkToLeft ? 1 : -1;
 				int start = i + dir;
 				for (int j = start; !topright.get(j).equals(link); j = (j+dir)%topright.size()){
-					if (dir<0) j = topright.size()+j; //wrap around if you're moving left
 					merged.add(topright.get(j));
+					if (j==0 && dir<0) j = botleft.size(); // wrap around if you're moving left
 				}
 				break;
 				
@@ -156,23 +178,25 @@ public class Parberrys {
 		
 		// top left
 		// this links (k+1,k-3) -> (k-1,k-2) and copies the points between (k-1,k-2) and (k-3,k-1)
+		goalLink = new Point(k-1+origin.x,k-2+origin.y);
+		otherLink = new Point(k-3+origin.x, k-1+origin.y);
 		for (int i = 0; i < topleft.size(); i++){
 			Point pt = topleft.get(i);
-			if (pt.x == k-1 && pt.y == k-2){
+			if (pt.equals(goalLink)){
 				merged.add(pt);
 				
 				// figure out if other link is to the left or right
 				Point link = pt;
 				boolean otherLinkToLeft = true;
 				Point right = topleft.get((i+1)%topleft.size());
-				if (right.x == k-3 && right.y == k-1) otherLinkToLeft = false;
+				if (right.equals(otherLink)) otherLinkToLeft = false;
 				
 				// move in opposite of direction to the other link, copying all the points
 				int dir = otherLinkToLeft ? 1 : -1;
 				int start = i + dir;
 				for (int j = start; !topleft.get(j).equals(link); j = (j+dir)%topleft.size()){
-					if (dir<0) j = topleft.size()+j;
 					merged.add(topleft.get(j));
+					if (j==0 && dir<0) j = botleft.size(); // wrap around if you're moving left
 				}
 				break;
 			}

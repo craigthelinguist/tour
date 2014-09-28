@@ -116,6 +116,7 @@ public class Board {
 		JButton btn_clear = new JButton("Clear");
 		options.add(btn_runAlgorithm);
 		options.add(btn_runOptimised);
+		options.add(btn_parberry);
 		options.add(btn_newBoard);
 		options.add(btn_saveTour);
 		options.add(btn_clear);
