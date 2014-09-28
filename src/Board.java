@@ -7,6 +7,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
 import java.util.List;
 
 import javax.swing.JButton;
@@ -36,7 +39,7 @@ public class Board {
 	private Algorithm state = Algorithm.UNOPTIMISED;
 	
 	private enum Algorithm{
-		NONE, UNOPTIMISED, OPTIMISED, OPTIMISED_CLOSED, PARBERRY;
+		NONE, UNOPTIMISED, OPTIMISED, OPTIMISED_CLOSED, STRUCTURED_TOUR, PARBERRY;
 	}
 	
 	final Color ODD_TILES = new Color(0,180,250);
@@ -81,21 +84,8 @@ public class Board {
 				}
 
 				// draw the tour
-				List<Point> solution = null;
-				switch (state){
-				case UNOPTIMISED:
-					solution = KnightsTour.getTour();
-					break;
-				case OPTIMISED:
-					solution = OptimisedOpen.getTour();
-					break;
-				case OPTIMISED_CLOSED:
-					solution = OptimisedClosed.getTour();
-					break;
-				case NONE:
-					solution = null;
-					break;
-				}
+				List<Point> solution = getTour();
+				
 				if (solution != null && !solution.isEmpty()){
 					g.setColor(Color.BLACK);
 					Point prev = solution.get(0);
@@ -110,8 +100,6 @@ public class Board {
 					}
 				}
 				
-				
-				
 			}
 		};
 		int panel_wd = GRID_WD*SIZE;
@@ -122,14 +110,16 @@ public class Board {
 		JButton btn_runAlgorithm = new JButton("Naiive Algorithm");
 		JButton btn_runOptimised = new JButton("Optimised");
 		JButton btn_runOptimisedBadStart = new JButton("Optimised Naive Start");
-		JButton btn_runClosedTour = new JButton("Structured Tour");
+		JButton btn_runStructuredTour = new JButton("Structured Tour");
 		JButton btn_newBoard = new JButton("New Board");
+		JButton btn_saveTour = new JButton("Save Tour");
 		JButton btn_clear = new JButton("Clear");
 		options.add(btn_runAlgorithm);
 		options.add(btn_runOptimised);
 		options.add(btn_runOptimisedBadStart);
-		options.add(btn_runClosedTour);
+		options.add(btn_runStructuredTour);
 		options.add(btn_newBoard);
+		options.add(btn_saveTour);
 		options.add(btn_clear);
 		options.setPreferredSize(new Dimension(btn_runAlgorithm.getPreferredSize().width+20,panel_wd));
 		options.setBackground(Color.WHITE);
@@ -177,16 +167,57 @@ public class Board {
 			}
 		
 		});
-		btn_runClosedTour.addActionListener(new ActionListener(){
+		btn_runStructuredTour.addActionListener(new ActionListener(){
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				if (selected == null) OptimisedClosed.knightsTour(SIZE);
-				else OptimisedClosed.knightsTour(SIZE, selected);
-				state = Algorithm.OPTIMISED_CLOSED;
+				if (selected == null) StructuredTour.knightsTour(SIZE);
+				else StructuredTour.knightsTour(SIZE, selected);
+				state = Algorithm.STRUCTURED_TOUR;
 				canvas.repaint();
 			}
 		
+		});
+		btn_saveTour.addActionListener(new ActionListener(){
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				
+				List<Point> solution = getTour();
+				if (solution == null) return;
+				StringBuilder sb = new StringBuilder();
+				sb.append(SIZE + "x" + SIZE + "_");
+				switch(state){
+					case UNOPTIMISED:
+						sb.append("unoptimised_open.txt");
+						break;
+					case OPTIMISED:
+						sb.append("optimised_open.txt");
+						break;
+					case OPTIMISED_CLOSED:
+						sb.append("optimised_closed.txt");
+						break;
+					case STRUCTURED_TOUR:
+						sb.append("structured.txt");
+						break;
+					case PARBERRY:
+						sb.append("parberry.txt");
+						break;
+					default:
+						return;
+				}
+				File f = new File(sb.toString());
+				try {
+					PrintStream ps = new PrintStream(f);
+					for (Point pt : solution){
+						ps.println(pt.x + "," + pt.y);
+					}
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			
 		});
 		btn_clear.addActionListener(new ActionListener(){
 
@@ -242,6 +273,31 @@ public class Board {
 		frame.pack();
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
+	}
+
+	public List<Point> getTour(){
+		List<Point> solution = null;
+		switch (state){
+		case UNOPTIMISED:
+			solution = KnightsTour.getTour();
+			break;
+		case OPTIMISED:
+			solution = OptimisedOpen.getTour();
+			break;
+		case OPTIMISED_CLOSED:
+			solution = OptimisedClosed.getTour();
+			break;
+		case STRUCTURED_TOUR:
+			solution = StructuredTour.getTour();
+			break;
+		case NONE:
+			solution = null;
+			break;
+		default:
+			solution = null;
+			break;
+		}
+		return solution;
 	}
 	
 }
